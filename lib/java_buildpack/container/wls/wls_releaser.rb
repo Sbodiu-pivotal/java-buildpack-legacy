@@ -50,17 +50,22 @@ module JavaBuildpack
 
         def create_scripts
           system "/bin/cp #{START_STOP_HOOKS_SRC_PATH}/* #{@application.root}/"
+          #system "/bin/cp #{CS_HOOKS_SRC_PATH}/#{PRE_CS_START_SCRIPT} #{@application.root}/"
+          system "/bin/cp #{CS_HOOKS_SRC_PATH}/*.sh #{@application.root}/"
+          system "/bin/cp -r #{CS_RESOURCE_PATH} #{@application.root}/APP-INF/.wls/"
           system "chmod +x #{@application.root}/*.sh"
+          system "chmod -R 755 #{@application.root}/APP-INF/.wls/"
 
           @pre_start_script = Dir.glob("#{@application.root}/#{PRE_START_SCRIPT}")[0]
           @post_stop_script = Dir.glob("#{@application.root}/#{POST_STOP_SCRIPT}")[0]
+          @pre_cs_start_script = Dir.glob("#{@application.root}/#{PRE_CS_START_SCRIPT}")[0]
 
           modify_pre_start_script
         end
 
         # The Pre-Start script
         def pre_start
-          "/bin/bash ./#{PRE_START_SCRIPT}"
+          "/bin/bash ./#{PRE_START_SCRIPT} && source ./#{PRE_CS_START_SCRIPT}"
         end
 
         # The Post-Shutdown script
@@ -70,11 +75,19 @@ module JavaBuildpack
 
         private
 
+        CS_RESOURCE   = 'cs'.freeze
+        CS_PKI_RESOURCE  = 'pki'.freeze
+        CS_CFW_RESOURCE  = 'cfw'.freeze
         HOOKS_RESOURCE   = 'hooks'.freeze
         PRE_START_SCRIPT = 'preStart.sh'.freeze
         POST_STOP_SCRIPT = 'postStop.sh'.freeze
+        PRE_CS_START_SCRIPT = 'preCSStart.sh'.freeze
 
         START_STOP_HOOKS_SRC_PATH = "#{BUILDPACK_CONFIG_CACHE_DIR}/#{HOOKS_RESOURCE}".freeze
+        CS_RESOURCE_PATH = "#{BUILDPACK_CONFIG_CACHE_DIR}/../#{CS_RESOURCE}".freeze
+        CS_PKI_RESOURCE_PATH = "#{CS_RESOURCE_PATH}/#{CS_PKI_RESOURCE}".freeze
+        CS_CFW_RESOURCE_PATH = "#{CS_RESOURCE_PATH}/#{CS_CFW_RESOURCE}".freeze
+        CS_HOOKS_SRC_PATH = "#{CS_RESOURCE_PATH}/#{HOOKS_RESOURCE}".freeze
 
         # Modify the templated preStart script with actual values
 
