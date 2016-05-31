@@ -48,7 +48,7 @@ module JavaBuildpack
 
         if @supports
           @wls_version, @wls_uri = JavaBuildpack::Repository::ConfiguredItem
-                                     .find_item(@component_name, @configuration) do |candidate_version|
+                                       .find_item(@component_name, @configuration) do |candidate_version|
             candidate_version.check_size(3)
           end
 
@@ -112,9 +112,9 @@ module JavaBuildpack
         post_shutdown_script = releaser.post_shutdown
 
         [
-          @droplet.java_home.as_env_var,
-          "USER_MEM_ARGS=\"#{@droplet.java_opts.join(' ')}\"",
-          "sleep 10; #{pre_start_script}; #{monitor_script} ; #{@domain_home}/startWebLogic.sh; #{post_shutdown_script}"
+            @droplet.java_home.as_env_var,
+            "USER_MEM_ARGS=\"#{@droplet.java_opts.join(' ')}\"",
+            "sleep 10; #{pre_start_script}; #{monitor_script} ; #{@domain_home}/startWebLogic.sh; #{post_shutdown_script}"
         ].flatten.compact.join(' ')
       end
 
@@ -249,9 +249,9 @@ module JavaBuildpack
       # Download Weblogic and unpack it
       def download_and_install_wls
         installation_map = {
-          'droplet'           => @droplet,
-          'wls_sandbox_root'  => @wls_sandbox_root,
-          'config_cache_root' => @buildpack_config_cache_root
+            'droplet'           => @droplet,
+            'wls_sandbox_root'  => @wls_sandbox_root,
+            'config_cache_root' => @buildpack_config_cache_root
         }
 
         download(@wls_version, @wls_uri) do |input_file|
@@ -266,21 +266,22 @@ module JavaBuildpack
       # Configure the Weblogic instance
       def configure
         configuration_map = {
-          'app_name'                 => @app_name,
-          'application'              => @application,
-          'app_services_config'      => @app_services_config,
-          'app_src_path'             => @app_src_path,
-          'domain_name'              => @domain_name,
-          'server_name'              => @server_name,
-          'domain_home'              => @domain_home,
-          'droplet'                  => @droplet,
-          'java_home'                => @java_home,
-          'config_cache_root'        => @config_cache_root,
-          'wls_sandbox_root'         => @wls_sandbox_root,
-          'wls_install'              => @wls_install,
-          'wls_domain_yaml_config'   => @wls_domain_yaml_config,
-          'wls_domain_config_script' => @wls_domain_config_script,
-          'wls_domain_path'          => @wls_domain_path
+            'app_name'                 => @app_name,
+            'application'              => @application,
+            'app_services_config'      => @app_services_config,
+            'app_src_path'             => @app_src_path,
+            'domain_name'              => @domain_name,
+            'server_name'              => @server_name,
+            'domain_home'              => @domain_home,
+            'droplet'                  => @droplet,
+            'java_home'                => @java_home,
+            'config_cache_root'        => @config_cache_root,
+            'wls_sandbox_root'         => @wls_sandbox_root,
+            'wls_install'              => @wls_install,
+            'wls_domain_yaml_config'   => @wls_domain_yaml_config,
+            'wls_domain_config_script' => @wls_domain_config_script,
+            'wls_domain_path'          => @wls_domain_path,
+            'wls_buildpack_config_cache_root' => @buildpack_config_cache_root
         }
 
         configurer = JavaBuildpack::Container::Wls::WlsConfigurer.new(configuration_map)
