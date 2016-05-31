@@ -39,6 +39,8 @@ module JavaBuildpack
           @wls_domain_path          = configuration_map['wls_domain_path']
           @wls_domain_yaml_config   = configuration_map['wls_domain_yaml_config']
           @wls_domain_config_script = configuration_map['wls_domain_config_script']
+          @wls_buildpack_config_cache_root = configuration_map['wls_buildpack_config_cache_root']
+
         end
 
         # Configure Weblogic
@@ -81,6 +83,9 @@ module JavaBuildpack
         MW_HOME_MW_TEMPLATE     = 'MW_HOME="\$MW_HOME"'.freeze
         BEA_HOME_BLANK_TEMPLATE = 'BEA_HOME=""'.freeze
         MW_HOME_BLANK_TEMPLATE  = 'MW_HOME=""'.freeze
+
+        CS_RESOURCE             = 'cs'.freeze
+        CS_RESOURCE_PATH        = "#{BUILDPACK_CONFIG_CACHE_DIR}/../#{CS_RESOURCE}".freeze
 
         def update_domain_config_template(wls_domain_yaml_config)
           original = File.open(wls_domain_yaml_config, 'r') { |f| f.read }
@@ -150,13 +155,13 @@ module JavaBuildpack
           # along with anything else that comes via the Service Bindings via the environment (VCAP_SERVICES) during
           # staging/execution of the droplet.
           JavaBuildpack::Container::Wls::ServiceBindingsHandler.create_service_definitions_from_file_set(
-            @wls_complete_domain_configs_yml,
-            @config_cache_root,
-            wls_complete_domain_configs_props)
+              @wls_complete_domain_configs_yml,
+              @config_cache_root,
+              wls_complete_domain_configs_props)
 
           JavaBuildpack::Container::Wls::ServiceBindingsHandler.create_service_definitions_from_bindings(
-            @app_services_config,
-            wls_complete_domain_configs_props)
+              @app_services_config,
+              wls_complete_domain_configs_props)
 
           log("Done generating Domain Configuration Property file for WLST: #{wls_complete_domain_configs_props}")
           log('--------------------------------------')
@@ -181,6 +186,20 @@ module JavaBuildpack
 
           print "-----> Finished configuring WebLogic Domain under #{@domain_home.relative_path_from(@droplet.root)}.\n"
           print "       WLST log saved at: #{@wls_sandbox_root}/wlstDomainCreation.log\n"
+          print "       Going to start server and run security configurations\n"
+
+          command = "/bin/chmod +x #{wlst_script}; export JAVA_HOME=#{@java_home};"
+          command << " export MW_HOME=#{@wls_install}; export WL_HOME=#{@wls_home}; export WLS_HOME=#{@wls_home}; " \
+                     'export CLASSPATH=;'
+          command << " sed -i.bak 's#JVM_ARGS=\"#JVM_ARGS=\" -Djava.security.egd=file:/dev/./urandom #g' " \
+                     "#{wlst_script} 2>/dev/null; "
+          command << " #{wlst_script}  #{@wls_domain_config_script} #{wls_complete_domain_configs_props}"
+          command << " > #{@wls_sandbox_root}/wlstDomainCreation.log"
+
+          log("Executing WLST: #{command}")
+          system "#{command} "
+          log("WLST finished generating domain under #{@domain_home}. WLST log saved at: " \
+              "#{@wls_sandbox_root}/wlstDomainCreation.log")
         end
 
         def complete_domain_configs_yml
@@ -208,21 +227,26 @@ module JavaBuildpack
         def link_jars_to_domain
           log('Linking pre and post jar directories relative to the Domain')
 
+          system '/bin/mkdir', "#{@config_cache_root}/#{WLS_PRE_JARS_CACHE_DIR}"
+          system '/bin/mkdir', "#{@config_cache_root}/#{WLS_POST_JARS_CACHE_DIR}"
+          system '/bin/cp', '-R',  "#{@wls_buildpack_config_cache_root}/#{WLS_PRE_JARS_CACHE_DIR}", "#{@config_cache_root}/"
+          system '/bin/cp', '-R',  "#{@wls_buildpack_config_cache_root}/#{WLS_POST_JARS_CACHE_DIR}", "#{@config_cache_root}/"
+          puts "/bin/cp #{@wls_buildpack_config_cache_root}/#{WLS_PRE_JARS_CACHE_DIR}/* #{@config_cache_root}/#{WLS_PRE_JARS_CACHE_DIR}"
           system '/bin/ln', '-s', "#{@config_cache_root}/#{WLS_PRE_JARS_CACHE_DIR}",
-                 "#{@domain_home}/#{WLS_PRE_JARS_CACHE_DIR}", '2>/dev/null'
+                 "#{@domain_home}/#{WLS_PRE_JARS_CACHE_DIR}"
           system '/bin/ln', '-s', "#{@config_cache_root}/#{WLS_POST_JARS_CACHE_DIR}",
-                 "#{@domain_home}/#{WLS_POST_JARS_CACHE_DIR}", '2>/dev/null'
+                 "#{@domain_home}/#{WLS_POST_JARS_CACHE_DIR}"
         end
 
         # Generate the property file based on app bundled configs for test against WLST
         def test_service_creation
           JavaBuildpack::Container::Wls::ServiceBindingsHandler.create_service_definitions_from_file_set(
-            @wls_complete_domain_configs_yml,
-            @config_cache_root,
-            @wls_complete_domain_configs_props)
+              @wls_complete_domain_configs_yml,
+              @config_cache_root,
+              @wls_complete_domain_configs_props)
           JavaBuildpack::Container::Wls::ServiceBindingsHandler.create_service_definitions_from_bindings(
-            @app_services_config,
-            @wls_complete_domain_configs_props)
+              @app_services_config,
+              @wls_complete_domain_configs_props)
 
           log('Done generating Domain Configuration Property file for WLST: '\
                             "#{@wls_complete_domain_configs_props}")
