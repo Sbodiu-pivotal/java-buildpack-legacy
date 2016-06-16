@@ -8,5 +8,5 @@
 Domain:
   wlsUser: weblogic
   wlsPasswd: welcome1
-  consoleEnabled: false
+  consoleEnabled: true
   prodModeEnabled: false

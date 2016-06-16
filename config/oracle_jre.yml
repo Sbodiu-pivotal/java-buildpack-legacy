@@ -18,10 +18,10 @@
 ---
 jre:
   version: 1.7.0_79
-  repository_root: "{default.repository.root}/fileserver/jdk"
+  repository_root: "{default.repository.root}/jdk"
 memory_calculator:
   version: 1.1.1_RELEASE
-  repository_root: "{default.repository.root}/fileserver/memory-calculator/"
+  repository_root: "{default.repository.root}/memory-calculator/trusty/x86_64"
   memory_sizes:
     metaspace: 64m..
     permgen: 64m..

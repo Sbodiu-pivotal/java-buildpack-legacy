@@ -16,7 +16,7 @@
 # Configuration for the WebLogic container
 ---
 version: 12.1.2
-repository_root: "{default.repository.root}/fileserver/wls"
+repository_root: "{default.repository.root}/wls"
 prefer_app_config: true
 start_in_wlx_mode: true
 prefer_root_web_context: true
