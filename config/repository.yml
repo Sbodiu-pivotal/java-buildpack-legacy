@@ -15,5 +15,5 @@
 
 # Repository configuration
 ---
-default_repository_root: http://127.0.0.1:7777/filserver
+default_repository_root: http://127.0.0.1:7777
 #https://download.run.pivotal.io
