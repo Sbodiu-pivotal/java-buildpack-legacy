@@ -1,6 +1,6 @@
 # Encoding: utf-8
-# Cloud Foundry Java Buildpack
-# Copyright 2013-2015 the original author or authors.
+# Cloud Foundry WebLogic Buildpack
+# Copyright 2013-2016 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,12 +26,13 @@ module JavaBuildpack
       class WlsReleaser
         include JavaBuildpack::Container::Wls::WlsConstants
 
-        def initialize(application, droplet, domain_home, server_name, start_in_wlx_mode)
+        def initialize(application, app_config_cache_root, droplet, domain_home, server_name, start_in_wlx_mode)
           @droplet           = droplet
           @application       = application
           @domain_home       = domain_home
           @server_name       = server_name
           @start_in_wlx_mode = start_in_wlx_mode
+          @app_config_cache_root = app_config_cache_root
 
           create_scripts
         end
@@ -75,19 +76,6 @@ module JavaBuildpack
 
         private
 
-        CS_RESOURCE   = 'cs'.freeze
-        CS_PKI_RESOURCE  = 'pki'.freeze
-        CS_CFW_RESOURCE  = 'cfw'.freeze
-        HOOKS_RESOURCE   = 'hooks'.freeze
-        PRE_START_SCRIPT = 'preStart.sh'.freeze
-        POST_STOP_SCRIPT = 'postStop.sh'.freeze
-        PRE_CS_START_SCRIPT = 'preCSStart.sh'.freeze
-
-        START_STOP_HOOKS_SRC_PATH = "#{BUILDPACK_CONFIG_CACHE_DIR}/#{HOOKS_RESOURCE}".freeze
-        CS_RESOURCE_PATH = "#{BUILDPACK_CONFIG_CACHE_DIR}/../#{CS_RESOURCE}".freeze
-        CS_PKI_RESOURCE_PATH = "#{CS_RESOURCE_PATH}/#{CS_PKI_RESOURCE}".freeze
-        CS_CFW_RESOURCE_PATH = "#{CS_RESOURCE_PATH}/#{CS_CFW_RESOURCE}".freeze
-        CS_HOOKS_SRC_PATH = "#{CS_RESOURCE_PATH}/#{HOOKS_RESOURCE}".freeze
 
         # Modify the templated preStart script with actual values
 

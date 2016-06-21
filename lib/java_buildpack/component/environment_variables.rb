@@ -20,36 +20,40 @@ require 'java_buildpack/util/qualify_path'
 module JavaBuildpack
   module Component
 
-    # An abstraction around the additional libraries provided to a droplet by components.
+    # An abstraction encapsulating the Environment Variables of an application.
     #
     # A new instance of this type should be created once for the application.
-    class AdditionalLibraries < Array
+    class EnvironmentVariables < Array
       include JavaBuildpack::Util
 
-      # Creates an instance of the +JAVA_OPTS+ abstraction.
+      # Creates an instance of the Environment Variables abstraction.
       #
       # @param [Pathname] droplet_root the root directory of the droplet
       def initialize(droplet_root)
-        @paths        = []
         @droplet_root = droplet_root
       end
 
-      # Returns the contents of the collection as a classpath formatted as +-cp <value1>:<value2>+
+      # Adds an environment variable. Prepends +$PWD+ to any variable values that are
+      # paths (relative to the droplet root) to ensure that the path is always accurate.
       #
-      # @return [String] the contents of the collection as a classpath
-      def as_classpath
-        qualified_paths = sort.map { |path| qualify_path path }
-
-        "-cp #{qualified_paths.join ':'}" unless empty?
+      # @param [String] key the variable name
+      # @param [String] value the variable value
+      # @return [EnvironmentVariables] +self+ for chaining
+      def add_environment_variable(key, value)
+        self << "#{key}=#{qualify_value(value)}"
       end
 
-      # Symlink the contents of the collection to a destination directory.
+      # Returns the contents as an environment variable formatted as +<key>=<value>+
       #
-      # @param [Pathname] destination the destination to link to
-      # @return [Void]
-      def link_to(destination)
-        FileUtils.mkdir_p destination
-        each { |path| (destination + path.basename).make_symlink(path.relative_path_from(destination)) }
+      # @return [String] the contents as an environment variable
+      def as_env_vars
+        join(' ')
+      end
+
+      private
+
+      def qualify_value(value)
+        value.respond_to?(:relative_path_from) ? qualify_path(value) : value
       end
 
     end

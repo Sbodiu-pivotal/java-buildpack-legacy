@@ -1,5 +1,5 @@
 # Cloud Foundry Java Buildpack
-# Copyright 2013-2015 the original author or authors.
+# Copyright 2013-2016 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,11 +18,14 @@
 containers:
   - "JavaBuildpack::Container::Weblogic"
 
-
 # In order to use Oracle JREs instead of OpenJDK, you must comment out the OpenJDK line and uncomment the Oracle line.
 # Please see the documentation for more detail.
 jres:
+# - "JavaBuildpack::Jre::OpenJdkJRE"
   - "JavaBuildpack::Jre::OracleJRE"
+
+# Frameworks are processed in order. Any Java Opts added by the JavaOpts framework will be specified in the start
+# command after any Java Opts added by previous frameworks.
 
 frameworks:
   - "JavaBuildpack::Framework::JavaOpts"

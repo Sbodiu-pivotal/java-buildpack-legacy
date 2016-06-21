@@ -1,6 +1,6 @@
 # Encoding: utf-8
-# Cloud Foundry Java Buildpack
-# Copyright (c) 2013 the original author or authors.
+# Cloud Foundry WebLogic Buildpack
+# Copyright 2013-2016 the original author or authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ module JavaBuildpack
 
         if @supports
           @wls_version, @wls_uri = JavaBuildpack::Repository::ConfiguredItem
-                                       .find_item(@component_name, @configuration) do |candidate_version|
+                                        .find_item(@component_name, @configuration) do |candidate_version|
             candidate_version.check_size(3)
           end
 
@@ -106,7 +106,8 @@ module JavaBuildpack
         monitor_agent  = JavaBuildpack::Container::Wls::MonitorAgent.new(@application)
         monitor_script = monitor_agent.monitor_script
 
-        releaser             = JavaBuildpack::Container::Wls::WlsReleaser.new(@application, @droplet, @domain_home,
+        releaser             = JavaBuildpack::Container::Wls::WlsReleaser.new(@application, @app_config_cache_root,
+                                                                              @droplet, @domain_home,
                                                                               @server_name, @start_in_wlx_mode)
         pre_start_script     = releaser.pre_start
         post_shutdown_script = releaser.post_shutdown
@@ -174,11 +175,11 @@ module JavaBuildpack
         end
 
         # For now, expecting only one script to be run to create the domain
-        @wls_domain_config_script = Dir.glob("#{@app_config_cache_root}/#{WLS_SCRIPT_CACHE_DIR}/*.py")[0]
+        @wls_domain_config_script = Dir.glob("#{@app_config_cache_root}/#{SCRIPT_CACHE_DIR}/*.py")[0]
 
         # If there is no Domain Script, use the buildpack bundled script.
         unless @wls_domain_config_script
-          @wls_domain_config_script = Dir.glob("#{@buildpack_config_cache_root}/#{WLS_SCRIPT_CACHE_DIR}/*.py")[0]
+          @wls_domain_config_script = Dir.glob("#{@buildpack_config_cache_root}/#{SCRIPT_CACHE_DIR}/*.py")[0]
           log('No Domain creation script found, reusing one from the buildpack bundled template!!')
         end
 
